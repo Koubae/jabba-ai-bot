@@ -8,7 +8,7 @@ class Cache(Protocol):
     async def get(self, key: str) -> TCacheValue:
         pass
 
-    async def set(self, key: str, value: TCacheValue, ttl: int = 0) -> None:
+    async def set(self, key: str, value: TCacheValue, ex: int = 0) -> None:
         pass
 
 

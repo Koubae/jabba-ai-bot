@@ -1,4 +1,6 @@
 import os
+import json
+import typing as t
 import asyncio
 import logging
 from collections import defaultdict
@@ -25,12 +27,17 @@ class ChatHistory:
 
         self._cache_key = f"{self._settings.cache_service_prefix}{self._application_id}:{self._session_id}"
 
-    async def add_message(self, message: str) -> None:
-        await self._cache.set(self._cache_key, message)
+    async def add_context(self, context: list[dict]) -> None:
+        context_encoded = json.dumps(context)
+        await self._cache.set(
+            self._cache_key, context_encoded, ex=300
+        )
 
-    async def get_history(self) -> list[str]:
+    async def get_context(self) -> list[dict] | None:
         cached = await self._cache.get(self._cache_key)
-        history = cached.decode()
+        if cached is None:
+            return None
+        history = json.loads(cached)
         return history
 
 
@@ -90,6 +97,11 @@ thread_pool = ThreadPoolExecutor(max_workers=min(os.cpu_count(), MAX_WORKERS))
 from abc import ABC, abstractmethod
 
 
+class ChatBotReply(t.TypedDict):
+    reply: str
+    context: list[dict]
+
+
 class ChatBot(ABC):
     @property
     @abstractmethod
@@ -97,18 +109,19 @@ class ChatBot(ABC):
         pass
 
     @abstractmethod
-    def chat(self, prompt: str, context: list[dict]) -> str:
+    def chat(self, prompt: str, context: list[dict]) -> ChatBotReply:
         pass
 
 
 class ChatBotTestingsMock(ChatBot):
     _model: str = "testings-mock"
 
-    def chat(self, prompt: str, context: list[dict]) -> str:
+    def chat(self, prompt: str, context: list[dict]) -> ChatBotReply:
         # Fake work AI work
         _ = context  # ignore
         reply = prompt[::-1]
-        return reply
+        new_context = context + [{"role": "assistant", "content": reply}]
+        return {"reply": reply, "context": new_context}
 
 
 from ollama import chat
@@ -118,12 +131,13 @@ from ollama import ChatResponse
 class ChatBotOllama(ChatBot):
     _model: str = "ollama-abstract"
 
-    def chat(self, prompt: str, context: list[dict]) -> str:
+    def chat(self, prompt: str, context: list[dict]) -> ChatBotReply:
         context.append({"role": "user", "content": prompt})
         response: ChatResponse = chat(model=self._model, messages=context)
         reply = response["message"]["content"]
-        context.append({"role": "assistant", "content": reply})
-        return reply
+
+        new_context = context + [{"role": "assistant", "content": reply}]
+        return {"reply": reply, "context": new_context}
 
 
 class ChatBotOllamaOpenAI(ChatBotOllama):
@@ -174,16 +188,27 @@ class ChatHandler:
                     f"[{self._application_id}][{self._session_id}] Received: {message}"
                 )
 
-                # reply = f"[{self._session_id}] >>> {message}"
-                reply = await loop.run_in_executor(
+                context = await self._chat_history.get_context()
+                if context is None:
+                    context = [
+                        {
+                            "role": "system",
+                            "content": "You are a helpful assistant, listen to the user and respond clearly.",
+                        }
+                    ]
+
+                result = await loop.run_in_executor(
                     thread_pool,
                     bot.chat,
                     message,
-                    [{"role": "user", "content": message}],
+                    context,
                 )
 
+                reply = result["reply"]
+                context = result["context"]
+
                 tasks = asyncio.gather(
-                    self._chat_history.add_message(message),
+                    self._chat_history.add_context(context),
                     manager.broadcast(reply, self._session_id),
                 )
                 await tasks

@@ -1,0 +1,39 @@
+services:
+  api-bot:
+    container_name: jabba-ai-bot
+    image: jabba-ai/ai-bot
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    volumes:
+      - ./src:/app/src
+      - ./.env:/app/.env
+      - ./deploy/entrypoint.sh:/entrypoint.sh
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-20003}:8000"
+    extra_hosts:
+      - "jabba-ai-cache:host-gateway"
+    networks:
+      - jabba-ai-api-bot
+    environment:
+      - REDIS_HOST=jabba-ai-cache
+      - BOT_ML_MODEL=testings-mock
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 12G
+          cpus: '8.0'
+        reservations:
+          memory: 6G
+          cpus: '4.0'
+    command: [ "uvicorn", "src.main:app", "--host=0.0.0.0", "--port=8000", "--reload" ]
+
+networks:
+  jabba-ai-api-bot:

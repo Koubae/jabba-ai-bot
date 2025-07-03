@@ -10,6 +10,22 @@ include .env
 run:
 	@pipenv shell; fastapi dev src/main.py --port=$(APP_PORT)
 
+# ============================
+#       Docker
+# ============================
+up:
+	@docker compose up
+
+down:
+	@docker compose down
+
+down-v:
+	@docker compose down -v
+
+build:
+	@echo 'Building images ...🛠️'
+	@docker compose build
+
 # --------------------------
 # Init
 # --------------------------

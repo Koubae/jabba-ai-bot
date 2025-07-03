@@ -41,6 +41,7 @@ class Settings:
     # ----------------------------
     cache_backend: str
     cache_service_prefix: str
+    cache_ttl_seconds: int
 
     redis_host: str
     redis_port: int
@@ -72,6 +73,7 @@ class Settings:
                 bot_ml_model=bot_ml_model,
                 cache_backend=os.getenv("CACHE_BACKEND", "redis"),
                 cache_service_prefix=os.getenv("CACHE_SERVICE_PREFIX", "ai_bot:"),
+                cache_ttl_seconds=int(os.getenv("CACHE_TTL_SECONDS", 300)),
                 redis_host=os.getenv("REDIS_HOST", "localhost"),
                 redis_port=int(os.getenv("REDIS_PORT", 6379)),
                 redis_db=int(os.getenv("REDIS_DB", 0)),

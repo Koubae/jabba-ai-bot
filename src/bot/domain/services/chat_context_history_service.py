@@ -16,7 +16,9 @@ class ChatContextHistory:
 
     async def add_context(self, context: list[dict]) -> None:
         context_encoded = json.dumps(context)
-        await self._cache.set(self._cache_key, context_encoded, ex=300)
+        await self._cache.set(
+            self._cache_key, context_encoded, ex=self._settings.cache_ttl_seconds
+        )
 
     async def get_context(self) -> list[dict] | None:
         cached = await self._cache.get(self._cache_key)

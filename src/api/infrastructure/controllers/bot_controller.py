@@ -1,11 +1,8 @@
 import logging
-import asyncio
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket
 
 from src.bot.application.chat_handler import ChatHandler
-from src.cache.application.get_cache import get_cache
-from src.cache.domain.cache import Cache
 from src.settings import Settings
 
 
@@ -17,9 +14,6 @@ class BotController:
         self.router: APIRouter = APIRouter()
         self.settings: Settings = Settings.get()
         self._register_routes()
-        # self._cache: Cache = get_cache()
-
-        # self.active_connections: dict[str, list[WebSocket]] = {}
 
     def _register_routes(self):
         self.router.add_api_websocket_route(
@@ -36,17 +30,3 @@ class BotController:
 
         await handler.handle()
         logger.info(f"[{application_id}][{session_id}] All connections closed!")
-
-        # import asyncio
-
-        # task = asyncio.create_task(handler.handle())
-        # asyncio.create_task(handler.handle())
-        # await asyncio.sleep(3)
-        # logger.info(
-        #     f"[{application_id}][{session_id}] WebSocket connection initialized"
-        # )
-        #
-        # await handler.handle()
-        # logger.info(
-        #     f"[{self._application_id}][{self._session_id}] All connections closed!"
-        # )

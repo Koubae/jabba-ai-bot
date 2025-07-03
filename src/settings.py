@@ -4,6 +4,13 @@ import typing as t
 from dataclasses import dataclass
 
 
+SUPPORTED_ML_MODELS: t.Final[tuple[str, ...]] = (
+    "testings-mock",
+    "openchat",
+    "neural-chat",
+)
+
+
 @dataclass(frozen=True)
 class Settings:
     """Singleton Instance for Application settings"""
@@ -24,6 +31,11 @@ class Settings:
     app_api_cors_allowed_domains: tuple[str, ...]
 
     # ----------------------------
+    #   Bot
+    # ----------------------------
+    bot_ml_model: t.Literal["testings-mock", "openchat", "neural-chat"]
+
+    # ----------------------------
     #   Redis
     # ----------------------------
     cache_backend: str
@@ -36,6 +48,14 @@ class Settings:
 
     @classmethod
     def get(cls) -> "Settings":
+        bot_ml_model: t.Literal["testings-mock", "openchat", "neural-chat"] = (  # noqa
+            os.getenv("BOT_ML_MODEL", "testings-mock")
+        )
+        if bot_ml_model not in SUPPORTED_ML_MODELS:
+            raise ValueError(
+                f"Unsupported ML model {bot_ml_model}. Supported models are {SUPPORTED_ML_MODELS}"
+            )
+
         if cls._singleton is None:
             cls._singleton = cls(
                 log_level=os.getenv("LOG_LEVEL", "DEBUG"),
@@ -45,6 +65,7 @@ class Settings:
                 app_api_cors_allowed_domains=tuple(
                     os.environ.get("APP_API_CORS_ALLOWED_DOMAINS", "").split(",")
                 ),
+                bot_ml_model=bot_ml_model,
                 cache_backend=os.getenv("CACHE_BACKEND", "redis"),
                 cache_service_prefix=os.getenv("CACHE_SERVICE_PREFIX", "ai_bot:"),
                 redis_host=os.getenv("REDIS_HOST", "localhost"),

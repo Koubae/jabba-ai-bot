@@ -5,10 +5,10 @@ TCacheValue = TypeVar("TCacheValue", str, int, float, bool, dict, list)
 
 
 class Cache(Protocol):
-    def get(self, key: str) -> TCacheValue:
+    async def get(self, key: str) -> TCacheValue:
         pass
 
-    def set(self, key: str, value: TCacheValue, ttl: int = 0) -> None:
+    async def set(self, key: str, value: TCacheValue, ttl: int = 0) -> None:
         pass
 
 

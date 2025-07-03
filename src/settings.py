@@ -35,6 +35,8 @@ class Settings:
     #   Bot
     # ----------------------------
     bot_ml_model: t.Literal["testings-mock", "openchat", "neural-chat"]
+    bot_context_length: int
+    bot_initial_system_prompt: str
 
     # ----------------------------
     #   Redis
@@ -71,6 +73,10 @@ class Settings:
                     os.getenv("APP_MAX_THREAD_POOL_WORKERS", 20)
                 ),
                 bot_ml_model=bot_ml_model,
+                bot_context_length=int(os.getenv("BOT_CONTEXT_LENGHT", 50)),
+                bot_initial_system_prompt=os.getenv(
+                    "BOT_INITIAL_SYSTEM_PROMPT", "You are a helpful assistant!"
+                ),
                 cache_backend=os.getenv("CACHE_BACKEND", "redis"),
                 cache_service_prefix=os.getenv("CACHE_SERVICE_PREFIX", "ai_bot:"),
                 cache_ttl_seconds=int(os.getenv("CACHE_TTL_SECONDS", 300)),

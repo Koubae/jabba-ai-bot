@@ -18,11 +18,11 @@ class BotController:
     def _register_routes(self):
         self.router.add_api_websocket_route(
             path="/ws/bot/create-connection/{session_id}",
-            endpoint=self.create_connection,
+            endpoint=self.create_connection_websocket,
             name="AI-Bot Chat",
         )
 
-    async def create_connection(self, websocket: WebSocket, session_id: str):
+    async def create_connection_websocket(self, websocket: WebSocket, session_id: str):
         application_id = "ai-bot"  # TODO: create a application_id!
         handler = ChatHandler(
             application_id=application_id, session_id=session_id, websocket=websocket

@@ -1,19 +1,14 @@
-import os
 import asyncio
 import logging
-from concurrent.futures import ThreadPoolExecutor
 
 from fastapi import WebSocket, WebSocketDisconnect
 from src.bot.domain.chat_bot import ChatBot
 from src.bot.application.chat_bot_provider import ChatBotProvider
 from src.bot.domain.services import ChatContextHistoryPoolServiceProvider
 from src.core.domain.services import ConnectionManagerProvider
+from src.core.infrastructure.thread_pool_provider import ThreadPoolProvider
 
 logger = logging.getLogger(__name__)
-
-
-MAX_WORKERS = 20
-thread_pool = ThreadPoolExecutor(max_workers=min(os.cpu_count(), MAX_WORKERS))
 
 
 class ChatHandler:
@@ -34,6 +29,7 @@ class ChatHandler:
         await connection_manager.connect(self._websocket, self._session_id)
 
         loop = asyncio.get_event_loop()
+        thread_pool = ThreadPoolProvider.get()
         try:
             while True:
                 message = await self._websocket.receive_text()

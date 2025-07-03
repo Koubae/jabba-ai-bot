@@ -29,6 +29,7 @@ class Settings:
     app_name: str
     app_version: str
     app_api_cors_allowed_domains: tuple[str, ...]
+    app_max_thread_pool_workers: int
 
     # ----------------------------
     #   Bot
@@ -64,6 +65,9 @@ class Settings:
                 app_version=os.getenv("APP_VERSION", "undefined"),
                 app_api_cors_allowed_domains=tuple(
                     os.environ.get("APP_API_CORS_ALLOWED_DOMAINS", "").split(",")
+                ),
+                app_max_thread_pool_workers=int(
+                    os.getenv("APP_MAX_THREAD_POOL_WORKERS", 20)
                 ),
                 bot_ml_model=bot_ml_model,
                 cache_backend=os.getenv("CACHE_BACKEND", "redis"),

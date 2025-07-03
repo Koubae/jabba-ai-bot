@@ -1,6 +1,6 @@
 import json
 
-from src.cache.application.get_cache import get_cache
+from src.cache.application.cache_provider import get_cache
 from src.cache.domain.cache import Cache
 from src.settings import Settings
 

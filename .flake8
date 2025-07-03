@@ -1,0 +1,6 @@
+[flake8]
+max-line-length = 120
+ignore = E203, W503, E231, E501, E704
+exclude = migrations
+per-file-ignores =
+    src/__init__.py:F401

@@ -1,0 +1,24 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+fastapi = "==0.115.14"
+transformers = "==4.53.0"
+torch = "==2.7.1"
+ollama = "==0.5.1"
+
+python-dotenv = "==1.1.0"
+
+[dev-packages]
+pytest = "==8.4.1"
+pytest-cov = "==6.2.1"
+black = "==25.1.0"
+flake8 = "==7.2.0"
+isort = "==6.0.1"
+mypy = "==1.16.0"
+
+[requires]
+python_version = "3.13"
+python_full_version = "3.13.5"

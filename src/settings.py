@@ -26,14 +26,16 @@ class Settings:
     # ----------------------------
     #   Redis
     # ----------------------------
+    cache_backend: str
+    cache_service_prefix: str
+
     redis_host: str
     redis_port: int
     redis_db: int
-    redis_service_prefix: str
+    redis_max_connections: int
 
     @classmethod
     def get(cls) -> "Settings":
-        a = os.getenv("APP_VERSION", "undefined")
         if cls._singleton is None:
             cls._singleton = cls(
                 log_level=os.getenv("LOG_LEVEL", "DEBUG"),
@@ -43,9 +45,11 @@ class Settings:
                 app_api_cors_allowed_domains=tuple(
                     os.environ.get("APP_API_CORS_ALLOWED_DOMAINS", "").split(",")
                 ),
+                cache_backend=os.getenv("CACHE_BACKEND", "redis"),
+                cache_service_prefix=os.getenv("CACHE_SERVICE_PREFIX", "ai_bot:"),
                 redis_host=os.getenv("REDIS_HOST", "localhost"),
                 redis_port=int(os.getenv("REDIS_PORT", 6379)),
                 redis_db=int(os.getenv("REDIS_DB", 0)),
-                redis_service_prefix=os.getenv("REDIS_SERVICE_PREFIX", "ai_bot:"),
+                redis_max_connections=int(os.getenv("REDIS_MAX_CONNECTIONS", 10)),
             )
         return cls._singleton

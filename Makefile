@@ -1,13 +1,14 @@
 .PHONY: run stop logs build flake8 black mypy isort tests unit integration
 
 VENV := .venv
+include .env
 
 # ============================
 #       Local Development
 # ============================
 
 run:
-	@pipenv shell; fastapi dev src/main.py
+	@pipenv shell; fastapi dev src/main.py --port=$(APP_PORT)
 
 # --------------------------
 # Init

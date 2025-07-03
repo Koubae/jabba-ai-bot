@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.settings import Settings
 from src.core.setup_logger import setup_logger
-
+from src.api.infrastructure import routes
 
 __all__ = (
     "create_app",
@@ -18,14 +18,6 @@ logger = logging.getLogger(__name__)
 def create_app() -> FastAPI:
     load_dotenv(find_dotenv())
     settings = setup()
-    # logger.info("settings %s", settings)
-
-    # import time
-    #
-    # emitter_logger = logging.getLogger("emitter")
-    # for i in range(10):
-    #     emitter_logger.info("info %s", i)
-    #     time.sleep(0.8)
 
     app = FastAPI(title=settings.app_name)
     app.add_middleware(
@@ -36,13 +28,8 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    @app.get("/index")
-    async def read_root():
-        return {"Hello": "World"}
-
-    from src.api.infrastructure import router
-
-    app.include_router(router.router, tags=["test"])
+    root_router = routes.get_router()
+    app.include_router(root_router)
     return app
 
 

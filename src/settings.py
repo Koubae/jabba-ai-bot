@@ -20,6 +20,7 @@ class Settings:
     log_level: str
     log_format: str
     app_name: str
+    app_version: str
     app_api_cors_allowed_domains: tuple[str, ...]
 
     # ----------------------------
@@ -32,11 +33,13 @@ class Settings:
 
     @classmethod
     def get(cls) -> "Settings":
+        a = os.getenv("APP_VERSION", "undefined")
         if cls._singleton is None:
             cls._singleton = cls(
                 log_level=os.getenv("LOG_LEVEL", "DEBUG"),
                 log_format=os.getenv("LOG_FORMAT", "%(asctime)s %(message)s"),
                 app_name=os.getenv("APP_NAME", "Jabba AI-Bot"),
+                app_version=os.getenv("APP_VERSION", "undefined"),
                 app_api_cors_allowed_domains=tuple(
                     os.environ.get("APP_API_CORS_ALLOWED_DOMAINS", "").split(",")
                 ),

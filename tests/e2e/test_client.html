@@ -63,6 +63,10 @@
     </div>
 </div>
 
+<div>
+    <label for="session-id"></label><input type="text" id="session-id" placeholder="Session-id" value="session-001">
+</div>
+
 <div id="messages"></div>
 
 <form onsubmit="event.preventDefault(); sendMessage();">
@@ -84,11 +88,13 @@
 
 <script>
     const input = document.getElementById('input');
+    const inputSessionId = document.getElementById('session-id');
     const messages = document.getElementById('messages');
     const connectionStatusWrapper = document.querySelector('.connection-status');
     const connectionStatus = document.querySelector('.connection-status .status');
 
-    const sessionID = 'session-001';
+    let sessionID = inputSessionId.value;
+    const WS_ENDPOINT = `ws://localhost:20003/chat/ws/bot/create-connection`;
     let socket;
     connect();
 
@@ -118,17 +124,14 @@
     }
 
     function connect() {
-        socket = new WebSocket(`ws://localhost:20003/chat/ws/bot/${sessionID}`);
+        sessionID = inputSessionId.value;
+        socket = new WebSocket(WS_ENDPOINT + `/${sessionID}`);
 
         socket.onmessage = (event) => {
-            if (!messages.lastChild || messages.lastChild.className !== 'bot') {
-                const msg = document.createElement('div');
-                msg.className = 'bot';
-                msg.textContent = '🤖 ' + event.data;
-                messages.appendChild(msg);
-            } else {
-                messages.lastChild.textContent += event.data;
-            }
+            const msg = document.createElement('div');
+            msg.className = 'bot';
+            msg.textContent = '🤖 ' + event.data;
+            messages.appendChild(msg);
             messages.scrollTop = messages.scrollHeight;
         };
 

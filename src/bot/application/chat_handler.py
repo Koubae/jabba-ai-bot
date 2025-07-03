@@ -5,23 +5,12 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 
 from fastapi import WebSocket, WebSocketDisconnect
-
 from src.bot.domain.chat_bot import ChatBot
-from src.bot.domain.services.chat_context_history_service import (
-    ChatContextHistory,
-    ChatContextHistoryPoolService,
-)
-from src.bot.infrastructure.bots.chat_bot_testings import ChatBotTestingsMock
-from src.bot.infrastructure.bots.ollama_chat_bots import (
-    ChatBotOllamaOpenAI,
-    ChatBotOllamaNeuralChat,
-)
-from src.settings import Settings
+from src.bot.application.chat_bot_provider import ChatBotProvider
+from src.bot.domain.services import ChatContextHistoryPoolServiceProvider
 
 
 logger = logging.getLogger(__name__)
-
-chat_history_pool = ChatContextHistoryPoolService()
 
 
 class ConnectionManager:
@@ -50,23 +39,6 @@ manager = ConnectionManager()
 MAX_WORKERS = 20
 thread_pool = ThreadPoolExecutor(max_workers=min(os.cpu_count(), MAX_WORKERS))
 
-chat_bot_mock = ChatBotTestingsMock()
-chat_bot_open_api = ChatBotOllamaOpenAI()
-chat_bot_neural_chat = ChatBotOllamaNeuralChat()
-
-
-def get_chat_bot(settings: Settings) -> ChatBot:
-    ml_model = settings.bot_ml_model
-    match ml_model:  # noqa
-        case "testings-mock":
-            return chat_bot_mock
-        case "openchat":
-            return chat_bot_open_api
-        case "neural-chat":
-            return chat_bot_neural_chat
-        case _:
-            raise ValueError(f"Unsupported model: {ml_model}")
-
 
 class ChatHandler:
     def __init__(self, application_id: str, session_id: str, websocket: WebSocket):
@@ -74,15 +46,17 @@ class ChatHandler:
         self._session_id: str = session_id
         self._websocket: WebSocket = websocket
         self._active_connections: dict[str, list[WebSocket]] = {}
-        self._chat_history: ChatContextHistory = (
-            chat_history_pool.get_or_create_history(application_id, session_id)
+        self._chat_history = (
+            ChatContextHistoryPoolServiceProvider.get().get_or_create_history(
+                application_id, session_id
+            )
         )
+        self._bot: ChatBot = ChatBotProvider.get()
 
     async def handle(self) -> None:
         await manager.connect(self._websocket, self._session_id)
 
         loop = asyncio.get_event_loop()
-        bot = get_chat_bot(Settings.get())
         try:
             while True:
                 message = await self._websocket.receive_text()
@@ -101,7 +75,7 @@ class ChatHandler:
 
                 result = await loop.run_in_executor(
                     thread_pool,
-                    bot.chat,
+                    self._bot.chat,
                     message,
                     context,
                 )

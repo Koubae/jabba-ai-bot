@@ -1,14 +1,18 @@
 import os
 import json
-import typing as t
 import asyncio
 import logging
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import WebSocket, WebSocketDisconnect
 
-from src.cache.application.get_cache import get_cache
+from src.bot.domain.chat_bot import ChatBot
+from src.bot.infrastructure.bots.chat_bot_testings import ChatBotTestingsMock
+from src.bot.infrastructure.bots.ollama_chat_bots import (
+    ChatBotOllamaOpenAI,
+    ChatBotOllamaNeuralChat,
+)
 from src.cache.domain.cache import Cache
 from src.settings import Settings
 
@@ -29,9 +33,7 @@ class ChatHistory:
 
     async def add_context(self, context: list[dict]) -> None:
         context_encoded = json.dumps(context)
-        await self._cache.set(
-            self._cache_key, context_encoded, ex=300
-        )
+        await self._cache.set(self._cache_key, context_encoded, ex=300)
 
     async def get_context(self) -> list[dict] | None:
         cached = await self._cache.get(self._cache_key)
@@ -93,60 +95,6 @@ class ConnectionManager:
 manager = ConnectionManager()
 MAX_WORKERS = 20
 thread_pool = ThreadPoolExecutor(max_workers=min(os.cpu_count(), MAX_WORKERS))
-
-from abc import ABC, abstractmethod
-
-
-class ChatBotReply(t.TypedDict):
-    reply: str
-    context: list[dict]
-
-
-class ChatBot(ABC):
-    @property
-    @abstractmethod
-    def _model(self) -> str:
-        pass
-
-    @abstractmethod
-    def chat(self, prompt: str, context: list[dict]) -> ChatBotReply:
-        pass
-
-
-class ChatBotTestingsMock(ChatBot):
-    _model: str = "testings-mock"
-
-    def chat(self, prompt: str, context: list[dict]) -> ChatBotReply:
-        # Fake work AI work
-        _ = context  # ignore
-        reply = prompt[::-1]
-        new_context = context + [{"role": "assistant", "content": reply}]
-        return {"reply": reply, "context": new_context}
-
-
-from ollama import chat
-from ollama import ChatResponse
-
-
-class ChatBotOllama(ChatBot):
-    _model: str = "ollama-abstract"
-
-    def chat(self, prompt: str, context: list[dict]) -> ChatBotReply:
-        context.append({"role": "user", "content": prompt})
-        response: ChatResponse = chat(model=self._model, messages=context)
-        reply = response["message"]["content"]
-
-        new_context = context + [{"role": "assistant", "content": reply}]
-        return {"reply": reply, "context": new_context}
-
-
-class ChatBotOllamaOpenAI(ChatBotOllama):
-    _model: str = "openchat"
-
-
-class ChatBotOllamaNeuralChat(ChatBotOllama):
-    _model: str = "neural-chat"
-
 
 chat_bot_mock = ChatBotTestingsMock()
 chat_bot_open_api = ChatBotOllamaOpenAI()

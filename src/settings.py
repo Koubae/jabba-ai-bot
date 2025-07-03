@@ -19,6 +19,16 @@ class Settings:
     # ----------------------------
     log_level: str
     log_format: str
+    app_name: str
+    app_api_cors_allowed_domains: tuple[str, ...]
+
+    # ----------------------------
+    #   Redis
+    # ----------------------------
+    redis_host: str
+    redis_port: int
+    redis_db: int
+    redis_service_prefix: str
 
     @classmethod
     def get(cls) -> "Settings":
@@ -26,5 +36,13 @@ class Settings:
             cls._singleton = cls(
                 log_level=os.getenv("LOG_LEVEL", "DEBUG"),
                 log_format=os.getenv("LOG_FORMAT", "%(asctime)s %(message)s"),
+                app_name=os.getenv("APP_NAME", "Jabba AI-Bot"),
+                app_api_cors_allowed_domains=tuple(
+                    os.environ.get("APP_API_CORS_ALLOWED_DOMAINS", "").split(",")
+                ),
+                redis_host=os.getenv("REDIS_HOST", "localhost"),
+                redis_port=int(os.getenv("REDIS_PORT", 6379)),
+                redis_db=int(os.getenv("REDIS_DB", 0)),
+                redis_service_prefix=os.getenv("REDIS_SERVICE_PREFIX", "ai_bot:"),
             )
         return cls._singleton

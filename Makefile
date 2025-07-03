@@ -7,8 +7,7 @@ VENV := .venv
 # ============================
 
 run:
-	@pipenv shell; python jabba-ai-bot.py
-
+	@pipenv shell; fastapi dev src/main.py
 
 # --------------------------
 # Init

@@ -1,5 +1,8 @@
+from src.asgi import create_app
+
+
 def main():
-    print("Hello World!")
+    create_app()
 
 
 if __name__ == "__main__":

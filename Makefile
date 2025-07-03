@@ -7,7 +7,7 @@ VENV := .venv
 # ============================
 
 run:
-	@pipenv shell && python main.py
+	@pipenv shell; python jabba-ai-bot.py
 
 
 # --------------------------
@@ -22,7 +22,7 @@ init-venv: .update-env-file .install-pip-env .install-env .install-deps
 	pipenv install --python=$(which python)
 
 .install-deps:
-	@pipenv shell && pipenv update
+	@pipenv shell; pipenv update
 
 .update-env-file:
 	@echo 'Updating .env from .env.example 🖋️...'
@@ -36,16 +36,16 @@ init-venv: .update-env-file .install-pip-env .install-env .install-deps
 quality-checks: isort black flake8 mypy
 
 flake8:
-	@pipenv shell && flake8 --config=.flake8 main.py src/
+	@pipenv shell; flake8 --config=.flake8 main.py src/
 
 black:
-	@pipenv shell && black --config=pyproject.toml jabba-ai-bot.py src/
+	@pipenv shell; black --config=pyproject.toml jabba-ai-bot.py src/
 
 mypy:
-	@pipenv shell && mypy main.py && mypy src/
+	@pipenv shell; mypy main.py && mypy src/
 
 isort:
-	@pipenv shell &&  isort main.py src/
+	@pipenv shell; isort main.py src/
 
 
 # =========================

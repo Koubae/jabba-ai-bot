@@ -86,3 +86,9 @@ class Settings:
                 redis_max_connections=int(os.getenv("REDIS_MAX_CONNECTIONS", 10)),
             )
         return cls._singleton
+
+    def get_app_info(self) -> str:
+        info = f"{self.app_name} V{self.app_version}!"
+        info += f"\nAI Bot model: {self.bot_ml_model}"
+        info += f"\nAI Bot Context Length: {self.bot_context_length}"
+        return info

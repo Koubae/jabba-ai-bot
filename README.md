@@ -19,6 +19,30 @@ make run
 
 * http://127.0.0.1:20003
 
+**Keep in mind that this will start with the `testings-mock` ML Model**
+
+### Set a specific ML model
+
+You can either change in your `.env` variable
+
+* `BOT_ML_MODEL=testings-mock`
+* `BOT_ML_MODEL=openchat`
+* `BOT_ML_MODEL=neural-chat`
+
+Or use these Make commands
+
+```bash
+make run-ml-testings-mock
+make run-ml-openchat
+make run-neural-chat
+```
+
+### Run a Chat client
+
+there are 2 simple chat clients for testings
+
+* [test_multi_client.html](./tests/e2e/test_multi_client.html) **_(recommended)_**
+* [test_client.html](./tests/e2e/test_client.html)
 
 ### Install black (formatter) globally
 
@@ -34,3 +58,22 @@ sudo apt install black -y
 * http://127.0.0.1:20003/alive
 * http://127.0.0.1:20003/ready
 * http://127.0.0.1:20003/docs
+
+
+### About the different ML models
+
+At the moment there are 3 ML models; well really 2 as the 3rd one is a fake model used for testings/mocking
+
+#### testings-mock
+
+Is a mock ML, is not even an ML. 
+It should be used for testing or while developing.
+The only thing that it does is reversing the prompt.
+
+Example 
+* prompt: `hello`
+* reply: `olleh` (to make you feel Spanish, and if you already are then Spanish x 2)
+
+#### openchat
+
+#### neural-chat

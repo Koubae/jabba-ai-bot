@@ -10,6 +10,15 @@ include .env
 run:
 	@pipenv shell; fastapi dev src/main.py --port=$(APP_PORT)
 
+run-ml-testings-mock:
+	@pipenv shell; BOT_ML_MODEL=testings-mock; fastapi dev src/main.py --port=$(APP_PORT)
+
+run-ml-openchat:
+	@pipenv shell; BOT_ML_MODEL=openchat; fastapi dev src/main.py --port=$(APP_PORT)
+
+run-neural-chat:
+	@pipenv shell; BOT_ML_MODEL=neural-chat; fastapi dev src/main.py --port=$(APP_PORT)
+
 # ============================
 #       Docker
 # ============================

@@ -39,5 +39,5 @@ def setup() -> Settings:
     settings = Settings.get()
     setup_logger(settings)
 
-    logger.info("Application setup completed")
+    logger.info(f"Application setup completed\nApplication: {settings.get_app_info()}")
     return settings

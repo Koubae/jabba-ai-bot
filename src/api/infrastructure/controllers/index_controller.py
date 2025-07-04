@@ -17,10 +17,9 @@ class IndexController:
         self.router.add_api_route(path="/ready", endpoint=self.ready, methods=["GET"])
 
     async def home(self) -> HTMLResponse:
-        return HTMLResponse(
-            content=f"Welcome to {self.settings.app_name} V{self.settings.app_version}!",
-            status_code=200,
-        )
+        info = f"Welcome to {self.settings.get_app_info()}"
+        info = info.replace("\n", "<br>")
+        return HTMLResponse(content=info, status_code=200)
 
     @staticmethod
     async def ping() -> HTMLResponse:

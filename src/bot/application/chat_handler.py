@@ -12,7 +12,7 @@ from src.settings import Settings
 logger = logging.getLogger(__name__)
 
 
-class ChatHandler:
+class ChatHandlerWebsocket:
     def __init__(self, application_id: str, session_id: str, websocket: WebSocket):
         self._application_id: str = application_id
         self._session_id: str = session_id

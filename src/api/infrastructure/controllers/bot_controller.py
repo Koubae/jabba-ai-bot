@@ -2,7 +2,7 @@ import logging
 
 from fastapi import APIRouter, WebSocket
 
-from src.bot.application.chat_handler import ChatHandler
+from src.bot.application.chat_handler import ChatHandlerWebsocket
 from src.settings import Settings
 
 
@@ -24,7 +24,7 @@ class BotController:
 
     async def create_connection_websocket(self, websocket: WebSocket, session_id: str):
         application_id = "ai-bot"  # TODO: create a application_id!
-        handler = ChatHandler(
+        handler = ChatHandlerWebsocket(
             application_id=application_id, session_id=session_id, websocket=websocket
         )
 

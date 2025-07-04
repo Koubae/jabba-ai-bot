@@ -1,6 +1,6 @@
 import typing as t
 
 
-class ChatBotReply(t.TypedDict):
+class BotReply(t.TypedDict):
     reply: str
     context: list[dict]

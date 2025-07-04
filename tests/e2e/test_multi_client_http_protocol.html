@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>WebSocket Chat Grid</title>
+    <title>HTTP Chat Grid</title>
     <style>
         body {
             font-family: sans-serif;
@@ -61,7 +61,11 @@
         }
 
         .connection-status.disconnected {
-            background-color: #fa8b8b;
+            background-color: #02ff11;
+        }
+
+        .connection-status.sending {
+            background-color: #ffa500;
         }
 
         .connection-status .status {
@@ -81,17 +85,31 @@
             margin-top: 0;
             margin-bottom: 1rem;
         }
+
+        .send-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .send-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
-<h2>AI-Bot PlayGround - Multi-Client Grid</h2>
+<h2>AI-Bot PlayGround - Multi-Client Grid (HTTP)</h2>
 
 <div class="grid-container">
     <!-- Client 1 -->
     <div class="client-panel">
         <h3>Client 1</h3>
         <div class="connection-status disconnected">
-            <div class="status">disconnected</div>
+            <div class="status">ready</div>
         </div>
         <div>
             <input type="text" class="session-id" placeholder="Session-id" value="session-001">
@@ -99,11 +117,10 @@
         <div class="messages"></div>
         <form onsubmit="event.preventDefault(); sendMessage(0);">
             <input type="text" class="input" placeholder="Type a message" autofocus>
-            <button type="submit">Send</button>
+            <button type="submit" class="send-btn">Send</button>
         </form>
         <div class="button-group">
-            <button onclick="disconnect(0)" class="disconnect-btn">Disconnect</button>
-            <button onclick="connect(0)" class="connect-btn">Connect</button>
+            <button onclick="clearMessages(0)" class="disconnect-btn">Clear</button>
         </div>
     </div>
 
@@ -111,7 +128,7 @@
     <div class="client-panel">
         <h3>Client 2</h3>
         <div class="connection-status disconnected">
-            <div class="status">disconnected</div>
+            <div class="status">ready</div>
         </div>
         <div>
             <input type="text" class="session-id" placeholder="Session-id" value="session-001">
@@ -119,11 +136,10 @@
         <div class="messages"></div>
         <form onsubmit="event.preventDefault(); sendMessage(1);">
             <input type="text" class="input" placeholder="Type a message" autofocus>
-            <button type="submit">Send</button>
+            <button type="submit" class="send-btn">Send</button>
         </form>
         <div class="button-group">
-            <button onclick="disconnect(1)" class="disconnect-btn">Disconnect</button>
-            <button onclick="connect(1)" class="connect-btn">Connect</button>
+            <button onclick="clearMessages(1)" class="disconnect-btn">Clear</button>
         </div>
     </div>
 
@@ -131,7 +147,7 @@
     <div class="client-panel">
         <h3>Client 3</h3>
         <div class="connection-status disconnected">
-            <div class="status">disconnected</div>
+            <div class="status">ready</div>
         </div>
         <div>
             <input type="text" class="session-id" placeholder="Session-id" value="session-002">
@@ -139,11 +155,10 @@
         <div class="messages"></div>
         <form onsubmit="event.preventDefault(); sendMessage(2);">
             <input type="text" class="input" placeholder="Type a message" autofocus>
-            <button type="submit">Send</button>
+            <button type="submit" class="send-btn">Send</button>
         </form>
         <div class="button-group">
-            <button onclick="disconnect(2)" class="disconnect-btn">Disconnect</button>
-            <button onclick="connect(2)" class="connect-btn">Connect</button>
+            <button onclick="clearMessages(2)" class="disconnect-btn">Clear</button>
         </div>
     </div>
 
@@ -151,7 +166,7 @@
     <div class="client-panel">
         <h3>Client 4</h3>
         <div class="connection-status disconnected">
-            <div class="status">disconnected</div>
+            <div class="status">ready</div>
         </div>
         <div>
             <input type="text" class="session-id" placeholder="Session-id" value="session-002">
@@ -159,20 +174,19 @@
         <div class="messages"></div>
         <form onsubmit="event.preventDefault(); sendMessage(3);">
             <input type="text" class="input" placeholder="Type a message" autofocus>
-            <button type="submit">Send</button>
+            <button type="submit" class="send-btn">Send</button>
         </form>
         <div class="button-group">
-            <button onclick="disconnect(3)" class="disconnect-btn">Disconnect</button>
-            <button onclick="connect(3)" class="connect-btn">Connect</button>
+            <button onclick="clearMessages(3)" class="disconnect-btn">Clear</button>
         </div>
     </div>
 </div>
 
 <script>
-    const WS_ENDPOINT = `ws://localhost:20003/ai/ws/bot/create-connection`;
+    const HTTP_ENDPOINT = `http://127.0.0.1:20003/ai/http/bot/send-message`;
     const clients = Array(4).fill(null).map(() => ({
-        socket: null,
-        elements: null
+        elements: null,
+        isWaiting: false
     }));
 
     // Initialize elements for each client
@@ -184,75 +198,110 @@
                 sessionId: panel.querySelector('.session-id'),
                 messages: panel.querySelector('.messages'),
                 connectionWrapper: panel.querySelector('.connection-status'),
-                connectionStatus: panel.querySelector('.connection-status .status')
+                connectionStatus: panel.querySelector('.connection-status .status'),
+                sendBtn: panel.querySelector('.send-btn')
             };
         });
     });
 
-    function sendMessage(clientIndex) {
+    async function sendMessage(clientIndex) {
         const client = clients[clientIndex];
-        if (!client.socket) {
-            alert("Please connect first");
+
+        if (client.isWaiting) {
+            alert("Please wait for the previous message to complete");
             return;
         }
+
         const text = client.elements.input.value.trim();
-        if (text) {
-            const userMsg = document.createElement('div');
-            userMsg.textContent = '🧑 ' + text;
-            client.elements.messages.appendChild(userMsg);
-            client.socket.send(text);
-            client.elements.input.value = '';
+        if (!text) {
+            return;
+        }
+
+        const sessionId = client.elements.sessionId.value.trim();
+        if (!sessionId) {
+            alert("Please enter a session ID");
+            return;
+        }
+
+        // Show user message
+        const userMsg = document.createElement('div');
+        userMsg.textContent = '🧑 ' + text;
+        client.elements.messages.appendChild(userMsg);
+        client.elements.messages.scrollTop = client.elements.messages.scrollHeight;
+
+        // Clear input and disable send button
+        client.elements.input.value = '';
+        client.isWaiting = true;
+        client.elements.sendBtn.disabled = true;
+
+        // Update status to sending
+        sendingShow(clientIndex);
+
+        try {
+            const response = await fetch(`${HTTP_ENDPOINT}/${sessionId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: text })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const responseData = await response.text();
+
+            // Show bot response
+            const botMsg = document.createElement('div');
+            botMsg.className = 'bot';
+            botMsg.textContent = '🤖 ' + responseData;
+            client.elements.messages.appendChild(botMsg);
+            client.elements.messages.scrollTop = client.elements.messages.scrollHeight;
+
+            // Update status to ready
+            readyShow(clientIndex);
+
+        } catch (error) {
+            console.error('Error sending message:', error);
+
+            // Show error message
+            const errorMsg = document.createElement('div');
+            errorMsg.style.color = 'red';
+            errorMsg.textContent = '❌ Error: ' + error.message;
+            client.elements.messages.appendChild(errorMsg);
+            client.elements.messages.scrollTop = client.elements.messages.scrollHeight;
+
+            // Update status to ready
+            readyShow(clientIndex);
+        } finally {
+            // Re-enable send button
+            client.isWaiting = false;
+            client.elements.sendBtn.disabled = false;
         }
     }
 
-    function disconnect(clientIndex) {
+    function clearMessages(clientIndex) {
         const client = clients[clientIndex];
-        if (client.socket) {
-            client.socket.close();
-            client.socket = null;
-        }
-
         while (client.elements.messages.firstChild) {
             client.elements.messages.removeChild(client.elements.messages.firstChild);
         }
-        disconnectShow(clientIndex);
+        readyShow(clientIndex);
     }
 
-    function connect(clientIndex) {
+    function sendingShow(clientIndex) {
         const client = clients[clientIndex];
-        const sessionID = client.elements.sessionId.value;
-        client.socket = new WebSocket(WS_ENDPOINT + `/${sessionID}`);
-
-        client.socket.onmessage = (event) => {
-            const msg = document.createElement('div');
-            msg.className = 'bot';
-            msg.textContent = '🤖 ' + event.data;
-            client.elements.messages.appendChild(msg);
-            client.elements.messages.scrollTop = client.elements.messages.scrollHeight;
-        };
-
-        connectedShow(clientIndex);
+        client.elements.connectionWrapper.classList.remove('connected', 'disconnected');
+        client.elements.connectionWrapper.classList.add('sending');
+        client.elements.connectionStatus.textContent = 'sending...';
     }
 
-    function disconnectShow(clientIndex) {
+    function readyShow(clientIndex) {
         const client = clients[clientIndex];
-        client.elements.connectionWrapper.classList.remove('connected');
+        client.elements.connectionWrapper.classList.remove('connected', 'sending');
         client.elements.connectionWrapper.classList.add('disconnected');
-        client.elements.connectionStatus.textContent = 'disconnected';
+        client.elements.connectionStatus.textContent = 'ready';
     }
-
-    function connectedShow(clientIndex) {
-        const client = clients[clientIndex];
-        client.elements.connectionWrapper.classList.remove('disconnected');
-        client.elements.connectionWrapper.classList.add('connected');
-        client.elements.connectionStatus.textContent = 'connected';
-    }
-
-    window.addEventListener('load', () => {
-        clients.forEach((client, index) => {
-           connect(index);
-       })
-    })
 
 </script>
 </body>

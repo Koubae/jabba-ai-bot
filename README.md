@@ -41,8 +41,21 @@ make run-neural-chat
 
 there are 2 simple chat clients for testings
 
+#### HTTP
+
+* [test_multi_client_http_protocol.html](./tests/e2e/test_multi_client_http_protocol.html) **_(recommended)_**
+
+#### WebSockets
+
 * [test_multi_client.html](./tests/e2e/test_multi_client.html) **_(recommended)_**
 * [test_client.html](./tests/e2e/test_client.html)
+
+### Send Chat message via HTTP
+
+```bash
+ curl -X POST http://127.0.0.1:20003/ai/http/bot/send-message/session-001 -H "Content-Type: application/json" -d '{"message": "Hello World"}'; echo
+```
+
 
 ### Install black (formatter) globally
 

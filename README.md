@@ -41,6 +41,12 @@ make run-neural-chat
 
 there are 2 simple chat clients for testings
 
+#### HTTP
+
+* [test_multi_client_http_protocol.html](./tests/e2e/test_multi_client_http_protocol.html) **_(recommended)_**
+
+#### WebSockets
+
 * [test_multi_client.html](./tests/e2e/test_multi_client.html) **_(recommended)_**
 * [test_client.html](./tests/e2e/test_client.html)
 

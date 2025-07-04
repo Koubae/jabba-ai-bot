@@ -2,7 +2,7 @@ import logging
 
 from fastapi import APIRouter, WebSocket
 
-from src.bot.application.chat_handler import ChatHandlerWebsocket
+from src.bot.application.chat_handler_websocket import ChatHandlerWebsocket
 from src.settings import Settings
 
 

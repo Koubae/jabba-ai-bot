@@ -2,17 +2,17 @@ import asyncio
 import logging
 from asyncio import AbstractEventLoop
 
-from src.bot.domain.dto import ChatBotReply
+from src.bot.domain.dto import BotReply
 from src.settings import Settings
-from src.bot.domain.chat_bot import ChatBot
-from src.bot.application.chat_bot_provider import ChatBotProvider
+from src.bot.domain.ai_bot import AIBot
+from src.bot.application.bot_provider import BotProvider
 from src.bot.domain.services import ChatContextHistoryPoolServiceProvider
 from src.core.infrastructure.thread_pool_provider import ThreadPoolProvider
 
 logger = logging.getLogger(__name__)
 
 
-class ChatHandlerBase:
+class BotHandlerBase:
     def __init__(self, application_id: str, session_id: str):
         self._application_id: str = application_id
         self._session_id: str = session_id
@@ -22,7 +22,7 @@ class ChatHandlerBase:
                 application_id, session_id
             )
         )
-        self._bot: ChatBot = ChatBotProvider.get()
+        self._bot: AIBot = BotProvider.get()
         self._loop: AbstractEventLoop = asyncio.get_event_loop()
         self._thread_pool = ThreadPoolProvider.get()
 
@@ -42,9 +42,7 @@ class ChatHandlerBase:
             context = self._generate_summary_of_current_context(context)
         return context
 
-    async def _process_bot_prompt(
-        self, message: str, context: list[dict]
-    ) -> ChatBotReply:
+    async def _process_bot_prompt(self, message: str, context: list[dict]) -> BotReply:
         result = await self._loop.run_in_executor(
             self._thread_pool,
             self._bot.chat,

@@ -10,6 +10,6 @@ def get_router() -> APIRouter:
     router.include_router(index_controller.router, tags=["index"])
 
     bot_controller = BotController()
-    router.include_router(bot_controller.router, prefix="/chat", tags=["bot"])
+    router.include_router(bot_controller.router, prefix="/ai", tags=["bot"])
 
     return router

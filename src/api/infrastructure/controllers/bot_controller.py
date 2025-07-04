@@ -3,11 +3,11 @@ import logging
 from fastapi import APIRouter, WebSocket
 from pydantic import BaseModel
 
-from src.bot.application.chat_handler_create_connection_websocket import (
-    ChatHandlerCreateConnectionWebsocket,
+from src.bot.application.bot_handler_create_connection_websocket import (
+    BotHandlerCreateConnectionWebsocket,
 )
-from src.bot.application.chat_handler_send_message_http import (
-    ChatHandlerSendMessageHttp,
+from src.bot.application.bot_handler_send_message_http import (
+    BotHandlerSendMessageHttp,
 )
 from src.settings import Settings
 
@@ -29,18 +29,18 @@ class BotController:
         self.router.add_api_route(
             path="/http/bot/send-message/{session_id}",
             endpoint=self.send_message_http,
-            name="AI-Bot Chat",
+            name="AI-Bot Send Message",
             methods=["POST"],
         )
         self.router.add_api_websocket_route(
             path="/ws/bot/create-connection/{session_id}",
             endpoint=self.create_connection_websocket,
-            name="AI-Bot Chat Websocket Connection",
+            name="AI-Bot Websocket Connection",
         )
 
     async def create_connection_websocket(self, websocket: WebSocket, session_id: str):
         application_id = "ai-bot"  # TODO: create a application_id!
-        handler = ChatHandlerCreateConnectionWebsocket(
+        handler = BotHandlerCreateConnectionWebsocket(
             application_id=application_id, session_id=session_id, websocket=websocket
         )
 
@@ -54,7 +54,7 @@ class BotController:
     ) -> dict:
         application_id = "ai-bot"  # TODO: create a application_id!
 
-        handler = ChatHandlerSendMessageHttp(
+        handler = BotHandlerSendMessageHttp(
             application_id=application_id, session_id=session_id
         )
 

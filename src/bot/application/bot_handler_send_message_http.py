@@ -1,11 +1,11 @@
 import logging
 
-from src.bot.application.chat_handler_base import ChatHandlerBase
+from src.bot.application.bot_handler_base import BotHandlerBase
 
 logger = logging.getLogger(__name__)
 
 
-class ChatHandlerSendMessageHttp(ChatHandlerBase):
+class BotHandlerSendMessageHttp(BotHandlerBase):
     async def handle(self, message: str) -> str:
         logging.info(
             f"[{self._application_id}][{self._session_id}] Received: {message}"

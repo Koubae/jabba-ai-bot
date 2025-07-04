@@ -47,7 +47,7 @@ there are 2 simple chat clients for testings
 ### Send Chat message via HTTP
 
 ```bash
- curl -X POST http://127.0.0.1:20003/chat/http/bot/send-message/session-001 -H "Content-Type: application/json" -d '{"message": "Hello World"}'; echo
+ curl -X POST http://127.0.0.1:20003/ai/http/bot/send-message/session-001 -H "Content-Type: application/json" -d '{"message": "Hello World"}'; echo
 ```
 
 

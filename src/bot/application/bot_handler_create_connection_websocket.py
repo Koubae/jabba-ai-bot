@@ -3,13 +3,13 @@ import logging
 
 from fastapi import WebSocket, WebSocketDisconnect
 
-from src.bot.application.chat_handler_base import ChatHandlerBase
+from src.bot.application.bot_handler_base import BotHandlerBase
 from src.core.domain.services import ConnectionManagerProvider
 
 logger = logging.getLogger(__name__)
 
 
-class ChatHandlerCreateConnectionWebsocket(ChatHandlerBase):
+class BotHandlerCreateConnectionWebsocket(BotHandlerBase):
     def __init__(self, application_id: str, session_id: str, websocket: WebSocket):
         super().__init__(application_id, session_id)
         self._websocket: WebSocket = websocket

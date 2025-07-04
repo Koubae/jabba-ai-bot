@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Chat Grid</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 2rem;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 20px;
+            margin-top: 2rem;
+        }
+
+        .client-panel {
+            border: 1px solid #ddd;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .messages {
+            border: 1px solid #ccc;
+            height: 200px;
+            overflow-y: scroll;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            background-color: white;
+        }
+
+        .input {
+            width: 80%;
+        }
+
+        .disconnect-btn {
+            margin: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            background-color: #fa8b8b;
+        }
+
+        .connect-btn {
+            margin: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            background-color: #8bf28b;
+        }
+
+        .connection-status {
+            margin: 0.5rem;
+            padding: 0.5rem 1rem;
+        }
+
+        .connection-status.connected {
+            background-color: #8bf28b;
+        }
+
+        .connection-status.disconnected {
+            background-color: #fa8b8b;
+        }
+
+        .connection-status .status {
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: start;
+            margin-top: 0.5rem;
+        }
+
+        h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+<h2>AI-Bot PlayGround - Multi-Client Grid</h2>
+
+<div class="grid-container">
+    <!-- Client 1 -->
+    <div class="client-panel">
+        <h3>Client 1</h3>
+        <div class="connection-status disconnected">
+            <div class="status">disconnected</div>
+        </div>
+        <div>
+            <input type="text" class="session-id" placeholder="Session-id" value="session-001">
+        </div>
+        <div class="messages"></div>
+        <form onsubmit="event.preventDefault(); sendMessage(0);">
+            <input type="text" class="input" placeholder="Type a message" autofocus>
+            <button type="submit">Send</button>
+        </form>
+        <div class="button-group">
+            <button onclick="disconnect(0)" class="disconnect-btn">Disconnect</button>
+            <button onclick="connect(0)" class="connect-btn">Connect</button>
+        </div>
+    </div>
+
+    <!-- Client 2 -->
+    <div class="client-panel">
+        <h3>Client 2</h3>
+        <div class="connection-status disconnected">
+            <div class="status">disconnected</div>
+        </div>
+        <div>
+            <input type="text" class="session-id" placeholder="Session-id" value="session-001">
+        </div>
+        <div class="messages"></div>
+        <form onsubmit="event.preventDefault(); sendMessage(1);">
+            <input type="text" class="input" placeholder="Type a message" autofocus>
+            <button type="submit">Send</button>
+        </form>
+        <div class="button-group">
+            <button onclick="disconnect(1)" class="disconnect-btn">Disconnect</button>
+            <button onclick="connect(1)" class="connect-btn">Connect</button>
+        </div>
+    </div>
+
+    <!-- Client 3 -->
+    <div class="client-panel">
+        <h3>Client 3</h3>
+        <div class="connection-status disconnected">
+            <div class="status">disconnected</div>
+        </div>
+        <div>
+            <input type="text" class="session-id" placeholder="Session-id" value="session-002">
+        </div>
+        <div class="messages"></div>
+        <form onsubmit="event.preventDefault(); sendMessage(2);">
+            <input type="text" class="input" placeholder="Type a message" autofocus>
+            <button type="submit">Send</button>
+        </form>
+        <div class="button-group">
+            <button onclick="disconnect(2)" class="disconnect-btn">Disconnect</button>
+            <button onclick="connect(2)" class="connect-btn">Connect</button>
+        </div>
+    </div>
+
+    <!-- Client 4 -->
+    <div class="client-panel">
+        <h3>Client 4</h3>
+        <div class="connection-status disconnected">
+            <div class="status">disconnected</div>
+        </div>
+        <div>
+            <input type="text" class="session-id" placeholder="Session-id" value="session-002">
+        </div>
+        <div class="messages"></div>
+        <form onsubmit="event.preventDefault(); sendMessage(3);">
+            <input type="text" class="input" placeholder="Type a message" autofocus>
+            <button type="submit">Send</button>
+        </form>
+        <div class="button-group">
+            <button onclick="disconnect(3)" class="disconnect-btn">Disconnect</button>
+            <button onclick="connect(3)" class="connect-btn">Connect</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const WS_ENDPOINT = `ws://localhost:20003/chat/ws/bot/create-connection`;
+    const clients = Array(4).fill(null).map(() => ({
+        socket: null,
+        elements: null
+    }));
+
+    // Initialize elements for each client
+    document.addEventListener('DOMContentLoaded', () => {
+        const panels = document.querySelectorAll('.client-panel');
+        panels.forEach((panel, index) => {
+            clients[index].elements = {
+                input: panel.querySelector('.input'),
+                sessionId: panel.querySelector('.session-id'),
+                messages: panel.querySelector('.messages'),
+                connectionWrapper: panel.querySelector('.connection-status'),
+                connectionStatus: panel.querySelector('.connection-status .status')
+            };
+        });
+    });
+
+    function sendMessage(clientIndex) {
+        const client = clients[clientIndex];
+        if (!client.socket) {
+            alert("Please connect first");
+            return;
+        }
+        const text = client.elements.input.value.trim();
+        if (text) {
+            const userMsg = document.createElement('div');
+            userMsg.textContent = '🧑 ' + text;
+            client.elements.messages.appendChild(userMsg);
+            client.socket.send(text);
+            client.elements.input.value = '';
+        }
+    }
+
+    function disconnect(clientIndex) {
+        const client = clients[clientIndex];
+        if (client.socket) {
+            client.socket.close();
+            client.socket = null;
+        }
+
+        while (client.elements.messages.firstChild) {
+            client.elements.messages.removeChild(client.elements.messages.firstChild);
+        }
+        disconnectShow(clientIndex);
+    }
+
+    function connect(clientIndex) {
+        const client = clients[clientIndex];
+        const sessionID = client.elements.sessionId.value;
+        client.socket = new WebSocket(WS_ENDPOINT + `/${sessionID}`);
+
+        client.socket.onmessage = (event) => {
+            const msg = document.createElement('div');
+            msg.className = 'bot';
+            msg.textContent = '🤖 ' + event.data;
+            client.elements.messages.appendChild(msg);
+            client.elements.messages.scrollTop = client.elements.messages.scrollHeight;
+        };
+
+        connectedShow(clientIndex);
+    }
+
+    function disconnectShow(clientIndex) {
+        const client = clients[clientIndex];
+        client.elements.connectionWrapper.classList.remove('connected');
+        client.elements.connectionWrapper.classList.add('disconnected');
+        client.elements.connectionStatus.textContent = 'disconnected';
+    }
+
+    function connectedShow(clientIndex) {
+        const client = clients[clientIndex];
+        client.elements.connectionWrapper.classList.remove('disconnected');
+        client.elements.connectionWrapper.classList.add('connected');
+        client.elements.connectionStatus.textContent = 'connected';
+    }
+
+    window.addEventListener('load', () => {
+        clients.forEach((client, index) => {
+           connect(index);
+       })
+    })
+
+</script>
+</body>
+</html>

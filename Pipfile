@@ -4,12 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-fastapi = "==0.115.14"
+fastapi = { version = "==0.115.14", extras = ["standard"] }
+uvicorn = "==0.35.0"
 transformers = "==4.53.0"
 torch = "==2.7.1"
 ollama = "==0.5.1"
 
 python-dotenv = "==1.1.0"
+redis = "==6.2.0"
 
 [dev-packages]
 pytest = "==8.4.1"

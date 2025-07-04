@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Chat</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 2rem;
+        }
+
+        #messages {
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: scroll;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        #input {
+            width: 80%;
+        }
+
+        .disconnect-btn {
+            margin: 1rem;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            background-color: #fa8b8b;
+        }
+
+        .connect-btn {
+            margin: 1rem;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            background-color: #8bf28b;
+        }
+
+        .connection-status {
+            margin: 1rem;
+            padding: 1rem 2rem;
+        }
+
+        .connection-status.connected {
+            background-color: #8bf28b;
+        }
+
+        .connection-status.disconnected {
+            background-color: #fa8b8b;
+        }
+
+        .connection-status .status {
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+<h2>AI-Bot PlayGround</h2>
+<div class="connection-status disconnected">
+    <div class="status">
+        disconnected
+    </div>
+</div>
+
+<div>
+    <label for="session-id"></label><input type="text" id="session-id" placeholder="Session-id" value="session-001">
+</div>
+
+<div id="messages"></div>
+
+<form onsubmit="event.preventDefault(); sendMessage();">
+    <label for="input"></label><input type="text" id="input" placeholder="Type a message" autofocus>
+    <button type="submit">Send</button>
+</form>
+
+<div style="display: flex; justify-content: start; margin-top: 1rem;">
+    <div>
+        <button onclick="disconnect()" class="disconnect-btn">Disconnect</button>
+    </div>
+
+    <div>
+        <button onclick="connect()" class="connect-btn">Connect</button>
+    </div>
+
+</div>
+
+
+<script>
+    const input = document.getElementById('input');
+    const inputSessionId = document.getElementById('session-id');
+    const messages = document.getElementById('messages');
+    const connectionStatusWrapper = document.querySelector('.connection-status');
+    const connectionStatus = document.querySelector('.connection-status .status');
+
+    let sessionID = inputSessionId.value;
+    const WS_ENDPOINT = `ws://localhost:20003/chat/ws/bot/create-connection`;
+    let socket;
+    connect();
+
+    function sendMessage() {
+        if (!socket) {
+            alert("Please connect first");
+            return;
+        }
+        const text = input.value.trim();
+        if (text) {
+            const userMsg = document.createElement('div');
+            userMsg.textContent = '🧑 ' + text;
+            messages.appendChild(userMsg);
+            socket.send(text);
+            input.value = '';
+        }
+    }
+
+    function disconnect() {
+        socket.close();
+        socket = null;
+
+        while (messages.firstChild) {
+            messages.removeChild(messages.firstChild);
+        }
+        disconnectShow()
+    }
+
+    function connect() {
+        sessionID = inputSessionId.value;
+        socket = new WebSocket(WS_ENDPOINT + `/${sessionID}`);
+
+        socket.onmessage = (event) => {
+            const msg = document.createElement('div');
+            msg.className = 'bot';
+            msg.textContent = '🤖 ' + event.data;
+            messages.appendChild(msg);
+            messages.scrollTop = messages.scrollHeight;
+        };
+
+        connectedShow()
+    }
+
+    function disconnectShow() {
+        connectionStatusWrapper.classList.remove('connected');
+        connectionStatusWrapper.classList.add('disconnected');
+    }
+
+    function connectedShow() {
+        connectionStatusWrapper.classList.remove('disconnected');
+        connectionStatusWrapper.classList.add('connected');
+    }
+
+</script>
+</body>
+</html>

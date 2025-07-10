@@ -7,6 +7,12 @@ The AI Bot of jabba-ai  🧠
 
 * [jabba-ai](https://github.com/Koubae/jabba-ai)
 
+<p align="center">
+  <img src="docs/imgs/jabba.webp" />
+</p>
+
+
+
 QuickStart
 ----------
 

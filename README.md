@@ -4,7 +4,7 @@ jabba-ai-bot
 
 _The AI Bot of jabba-ai  🧠_
 
-### [jabba-ai](https://github.com/Koubae/jabba-ai)
+# [jabba-ai](https://github.com/Koubae/jabba-ai)
 
 <p align="center">
   <img src="docs/imgs/jabba.webp" />

@@ -7,7 +7,7 @@ _The AI Bot of jabba-ai  🧠_
 # SEE --> [jabba-ai](https://github.com/Koubae/jabba-ai)
 
 <p align="center">
-  <img src="docs/imgs/jabba.webp" />
+  <img src="docs/imgs/jabba.png" />
 </p>
 
 
